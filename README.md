@@ -1,6 +1,11 @@
 ## 项目为AIO固件配套上位机
 Holocubic_AIO开源地址 https://github.com/ClimbSnail/HoloCubic_AIO
 
+[^_^]:
+	![AIO_TOOL](Image/holocubic_aio_tool.png)
+
+![AIO_TOOL](https://gitee.com/ClimbSnailQ/Project_Image/raw/master/OtherProject/holocubic_aio_tool.png)
+
 ## 重要问题
 本工程包含了上位机所有代码及资源文件，但唯独缺少视频转化工具`ffmpeg`（文件太大），需要转化功能的可以自行访问`ffmpeg`原项目地址 https://github.com/FFmpeg/FFmpeg 下载，把其中的`ffmpeg.exe`文件放在本目录下即可。
 
