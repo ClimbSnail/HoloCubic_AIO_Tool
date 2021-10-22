@@ -15,7 +15,7 @@ from download_debug import DownloadDebug
 from setting import Setting
 from help import Helper
 from imagetrans import ImagesChanger
-from tfmanager import TfManager
+from filemanager import FileManager
 
 import os
 import tkinter as tk
@@ -61,8 +61,8 @@ class Engine(object):
 
         # 内存卡管理页面
         self.m_file_tab = tk.Frame(self.m_tab_manager, bg="white")
-        self.m_tab_manager.add(self.m_file_tab, text="内存卡管理")
-        self.m_file_tab_windows = TfManager(self.m_file_tab, self)
+        self.m_tab_manager.add(self.m_file_tab, text="文件管理")
+        self.m_file_tab_windows = FileManager(self.m_file_tab, self)
 
         # 图片转换页面
         self.m_image_tab = tk.Frame(self.m_tab_manager, bg="white")

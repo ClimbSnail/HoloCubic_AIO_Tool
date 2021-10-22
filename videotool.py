@@ -30,8 +30,8 @@ class VideoTool(object):
         :param lock:线程锁
         :return:None
         """
-        self.m_engine = engine  # 负责各个组件之间数据调度的引擎
-        self.m_father = father  # 保存父窗口
+        self.__engine = engine  # 负责各个组件之间数据调度的引擎
+        self.__father = father  # 保存父窗口
 
         output_param_frame = tk.Frame(father, bg=father["bg"])
         # 路径
@@ -46,7 +46,7 @@ class VideoTool(object):
                                                 bg="white")
         # self.connor_param_frame.place(anchor="ne", relx=100.0, rely=100.0)
         # self.connor_param_frame.grid(row=1, column=1)
-        # self.connor_param_frame.place(x=self.m_father.winfo_width()+5, y=0)
+        # self.connor_param_frame.place(x=self.__father.winfo_width()+5, y=0)
         # self.connor_param_frame.update()
         self.connor_param_frame.pack(side=tk.LEFT, pady=5)
         self.init_options(self.connor_param_frame)  # 初始化参数
