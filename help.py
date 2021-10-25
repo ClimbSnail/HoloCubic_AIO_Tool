@@ -3,7 +3,7 @@
 #
 # Author: ClimbSnail(HQ)
 # original source is here.
-#   https://github.com/ClimbSnail/HoloCubic_AIO
+#   https://github.com/ClimbSnail/HoloCubic_AIO_Tool
 # 
 #
 ################################################################################
