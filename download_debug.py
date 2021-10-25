@@ -19,38 +19,9 @@ from tkinter import ttk
 from tkinter import filedialog
 from tool_esptoolpy import esptool
 import threading
-import ctypes
-import inspect
-import traceback
 
 STRGLO = ""  # 读取的数据
 BOOL = True  # 读取标志位
-
-
-def _async_raise(thread):
-    """
-    释放进程
-    :param thread: 进程对象
-    :param exctype:
-    :return:
-    """
-    try:
-        tid = thread.ident
-        tid = ctypes.c_long(tid)
-        exctype = SystemExit
-        """raises the exception, performs cleanup if needed"""
-        if not inspect.isclass(exctype):
-            exctype = type(exctype)
-        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
-        if res == 0:
-            raise ValueError("invalid thread id")
-        elif res != 1:
-            # """if it returns a number greater than one, you're in trouble,
-            # and you should call it again with exc=NULL to revert the effect"""
-            ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
-            raise SystemError("PyThreadState_SetAsyncExc failed")
-    except Exception as err:
-        print(err)
 
 
 class DownloadDebug(object):
@@ -613,6 +584,7 @@ class DownloadDebug(object):
                 self.m_msg.insert(tk.END, STRGLO)
                 self.m_msg.config(state=tk.DISABLED)
                 self.m_msg.yview_moveto(1)
+                time.sleep(0.1)
 
     def get_download_param(self):
         """

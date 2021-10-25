@@ -54,12 +54,12 @@ class Engine(object):
         self.m_tab_manager.add(self.m_debug_tab, text="下载调试")
         self.m_debug_tab_windows = DownloadDebug(self.m_debug_tab, self)
 
-        # 参数设置页面
-        self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
-        self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
-        self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
+        # # 参数设置页面
+        # self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
+        # self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
+        # self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
 
-        # 内存卡管理页面
+        # 文件管理页面
         self.m_file_tab = tk.Frame(self.m_tab_manager, bg="white")
         self.m_tab_manager.add(self.m_file_tab, text="文件管理")
         self.m_file_tab_windows = FileManager(self.m_file_tab, self)
@@ -90,9 +90,15 @@ class Engine(object):
         关闭主窗口时要触发的函数
         :return: None
         """
-        if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            self.root.destroy()
+        if self.m_file_tab_windows != None:
+            self.m_file_tab_windows.__del__()
+            del self.m_file_tab_windows
+            self.m_file_tab_windows = None
 
+        # if messagebox.askokcancel("Quit", "Do you want to quit?"):
+        self.root.destroy()
+
+        if self.m_debug_tab_windows != None:
             del self.m_debug_tab_windows
             self.m_debug_tab_windows = None
 
@@ -113,8 +119,13 @@ class Engine(object):
         """
         释放资源
         """
-        del self.m_debug_tab_windows
+        # del self.m_debug_tab_windows
         self.m_debug_tab_windows = None
+
+        if self.m_file_tab_windows != None:
+            self.m_file_tab_windows.__del__()
+            del self.m_file_tab_windows
+            self.m_file_tab_windows = None
 
 
 if __name__ == '__main__':

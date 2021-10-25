@@ -10,10 +10,16 @@
 
 import tkinter as tk
 import tkutils as tku
+from tkinter import ttk
 from common import *
 from ctypes import *  
 from file_info import *
+from robotsocket import *
 import sys
+
+
+# 文件数据的结构
+# FileObj {"type":"file", "name":"Filore_1", "path":"", "sub_file":[]}
 
 
 class FileManager(object):
@@ -31,14 +37,270 @@ class FileManager(object):
         """
         self.__engine = engine  # 负责各个组件之间数据调度的引擎
         self.__father = father  # 保存父窗口
-        self.__file_pool = []    # 保存所有的目录信息
-        fs = FileSystem_TT()
-        recv_data = b'\x00\x01\x01\x00\x00\x00\x00'
+        self.__tree_map_file = {}   # 用于绑定文件对象与tree元素的关系 treeID->
+        self.__path_map_file = {}   # 用于绑定文件对象与tree元素的关系
+        self.__clientsocket = None
+        self.__is_freestatus = False   # 标志是否是空闲状态 False否
+        
+        # 连接器相关控件
+        self.m_conn_frame = tk.Frame(self.__father, bg=father["bg"])
+        self.init_connect(self.m_conn_frame)  # 初始化ip地址
+        self.m_conn_frame.pack(side=tk.TOP, pady=5)
+
+        # 目录树
+        self.path_tree_frame = tk.Frame(father, bg=father["bg"])
+        self.init_path_tree(self.path_tree_frame)  # 初始化目录树
+        self.path_tree_frame.pack(side=tk.LEFT, fill=tk.X, padx=5)
+
+        # 视图区
+        self.view_file_frame = tk.Frame(father, bg=father["bg"])
+        self.init_view_file(self.view_file_frame)  # 初始化视图区
+        self.view_file_frame.pack(side=tk.LEFT, fill=tk.X, padx=5)
+        
+        print("this test")
+        fs = DirList("/")
+        recv_data = b'##\x02\x01\x00d\x04/\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+        # b'##\x01\x02\x01\xfa\x04/\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00System Volume Information/\tmovie/\tweather/\timage/\tB1.JPG\t\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
         fs.decode(recv_data)
         print(fs.header_mark)
-        # print(type(fs.action_type))
-        # print(getSendInfo(fs.encode()))
-        # print(sys.getsizeof(fs.file_name))
+        print(fs.msg_len)
+
+        fs = DirList("/", "test_dir")
+        data = fs.encode()
+        print(getSendInfo(data))
+
+        fs = DirList("")
+        fs.decode(data)
+        print( fs.dir_info.decode('utf-8') )
+
+
+    def init_connect(self, father):
+        """
+        初始化连接
+        :param father: 父容器
+        :return: None
+        """
+        border_padx = 10  # 两个控件的间距
+
+        ip_frame = tk.Frame(father, bg=father["bg"])
+        self.m_ip_label = tk.Label(ip_frame, text="ip地址",
+                                    # font=self.my_ft1,
+                                    bg=father['bg'])
+        self.m_ip_label.pack(side=tk.LEFT, padx=border_padx)
+        # 创建输入框
+        self.m_ip_entry = tk.Entry(ip_frame, width=20, highlightcolor="LightGrey")
+        # self.m_ip_entry["state"] = tk.DISABLED
+        self.m_ip_entry.pack(side=tk.LEFT, padx=border_padx)
+        self.m_ip_entry.delete(0, tk.END)  # 清空文本框
+        self.m_ip_entry.insert(tk.END, "192.168.123.241:8081")
+        # 连接按钮
+        # self.conn_botton = tk.Frame(father, bg=father["bg"])
+        self.conn_botton = tk.Button(ip_frame, text="连接", fg='black',
+                                         command=self.connect_holocubic, width=8, height=1)
+
+        self.conn_botton.pack(side=tk.RIGHT, fill=tk.X, padx=5)
+
+        ip_frame.pack(side=tk.TOP, pady=5)
+        
+
+    def connect_holocubic(self):
+        # 客户端范例
+        def myRecvHandle(dat):  # 接收函数
+            msg_head = MsgHead()
+            msg_head.decode(dat)
+            print("Massages Len = ", msg_head.msg_len)
+
+            msg_fs = FileSystem()
+            msg_fs.decode(dat)
+            print("Massages action_type = ", msg_fs.action_type)
+
+            display_data = ("Client recv %s\n" % dat).encode(encoding="utf-8")
+            print("Massages dat = ", display_data)
+
+            # 消息处理
+            if msg_fs.action_type == AT.AT_FREE_STATUS:
+                print("AT_FREE_STATUS")
+                self.__is_freestatus = True
+                return None
+            elif msg_fs.action_type == AT.AT_DIR_CREATE:
+                print("AT_DIR_CREATE")
+            elif msg_fs.action_type == AT.AT_DIR_REMOVE:
+                print("AT_DIR_REMOVE")
+            elif msg_fs.action_type == AT.AT_DIR_RENAME:
+                print("AT_DIR_RENAME")
+            elif msg_fs.action_type == AT.AT_DIR_LIST:
+                print("AT_DIR_LIST")
+                msg = DirList()
+                msg.decode(dat)
+                dir_path = msg.dir_path.decode('utf-8')
+                sub_file_list = msg.dir_info.decode('utf-8').split('\t')[:-1]
+                print("DirList info: ", dir_path)
+                print("DirList info: ", sub_file_list)
+                self.reflush_folder(dir_path, sub_file_list)
+            elif msg_fs.action_type == AT.AT_FILE_CREATE:
+                print("AT_FILE_CREATE")
+            elif msg_fs.action_type == AT.AT_FILE_WRITE:
+                print("AT_FILE_WRITE")
+            elif msg_fs.action_type == AT.AT_FILE_READ:
+                print("AT_FILE_READ")
+                msg = FileRead()
+                msg.decode(dat)
+            elif msg_fs.action_type == AT.AT_FILE_REMOVE:
+                print("AT_FILE_REMOVE")
+            elif msg_fs.action_type == AT.AT_FILE_RENAME:
+                print("AT_FILE_RENAME")
+            elif msg_fs.action_type == AT.AT_FILE_GET_INFO:
+                print("AT_FILE_GET_INFO")
+                msg = FileGetInfo()
+                msg.decode(dat)
+                
+
+        if self.conn_botton["text"] == "连接":
+            try:
+                ip_port = self.m_ip_entry.get().strip()
+                ip, port = ip_port.split(":")
+                print(ip, port)
+                # 初始化端口并设置接收数据的函数(当接收到数据，自动被调用)
+                self.__clientsocket = RobotSocketClient(ip, int(port), myRecvHandle)
+                self.__clientsocket.start()    # socket开始工作
+                
+                self.conn_botton["text"] = "断开连接"
+            except Exception as err:
+                print(err)
+        else:
+            self.conn_botton["text"] = "连接"
+            if self.__clientsocket != None:
+                self.__clientsocket.__del__()
+                # del self.__clientsocket
+                self.__clientsocket = None
+            
+
+    def init_path_tree(self, father):
+        """
+        初始化连接
+        :param father: 父容器
+        :return: None
+        """
+        border_padx = 10  # 两个控件的间距
+
+        # path_tree_frame = tk.PanedWindow(father, showhandle = False, orient=tk.HORIZONTAL)
+        # path_tree_frame.pack(expand = 1, fill = tk.BOTH)
+
+        path_tree_frame = tk.Frame(father, bg=father["bg"])
+        
+        # path_tree_frame.add(path_tree_frame)
+        
+        self.tree = ttk.Treeview(path_tree_frame, show = "tree", selectmode = "browse")
+        tree_y_scroll_bar = tk.Scrollbar(path_tree_frame, command = self.tree.yview, relief = tk.SUNKEN, width = 2)
+        tree_y_scroll_bar.pack(side = tk.RIGHT, fill = tk.Y)
+        self.tree.config(yscrollcommand = tree_y_scroll_bar.set)
+        self.tree.pack(expand = 1, fill = tk.BOTH)
+
+        self.tree.bind("<<TreeviewSelect>>", lambda event: self.select_tree())
+        # text.bind("<MouseWheel>", lambda event : self.update_line())
+        self.folder_img = tk.PhotoImage(file = r"./image/folder.png")
+        self.file_img = tk.PhotoImage(file = r"./image/text_file.png")
+        
+        # 初始化根
+        self.tree_root = self.tree.insert("", tk.END, text = "内存卡文件", open = True, image = self.folder_img)
+        root_file = {"tree":self.tree_root, "type":"folder", "name":"内存卡文件", "path":"/", "sub_file":[]}
+        self.__tree_map_file[self.tree_root] = root_file  # 初始化总目录
+        self.__path_map_file[root_file["path"]] = root_file
+        self.display_path_tree(self.tree_root, root_file);
+
+        path_tree_frame.pack(side=tk.TOP, pady=5)
+
+    def display_path_tree(self, cur_tree_root, fileObj):
+        """
+        显示目录树
+        :param cur_tree_root: 当前树根
+        :return: None
+        """
+        print("display_path_tree")
+
+        if fileObj["sub_file"] == None:
+            print("文件元素不需要显示")
+            return None # 文件元素不需要显示
+            
+        # 删除之前创建的节点
+        for sub_item in self.tree.get_children(cur_tree_root):
+            self.__tree_map_file[sub_item]["tree"] = None   # 由于下一步需要删除
+            del self.__tree_map_file[sub_item]
+            self.tree.delete(sub_item)
+            print("------> 1")
+
+        # 刷新显示子元素
+        for sub_file in fileObj["sub_file"]:
+            if sub_file["type"] == "folder":
+                image = self.folder_img
+            else:
+                image = self.file_img
+            sub_tree = self.tree.insert(cur_tree_root, tk.END, text = sub_file["name"],
+                values = (sub_file["path"],), open = True, image = image)
+            # 绑定tree与文件对象的关系
+            self.__tree_map_file[sub_tree] = sub_file
+            sub_file["tree"] = sub_tree
+            print("------> 2")
+            # self.__file_map_tree[sub_file["path"]] = sub_tree
+    
+
+    def reflush_folder(self, updata_path, sub_file_list):
+        """
+        刷新目录
+
+        """
+        print("reflush_folder")
+        print(updata_path)
+
+        try:
+            for sub_file_name in sub_file_list:
+                print("------> 1")
+                print(sub_file_name)
+                sub_tmp = None
+                if "/" in sub_file_name:
+                    print("------> 3")
+                    sub_tmp = {"tree":None, "type":"folder", "name":sub_file_name[:-1], "path":updata_path+sub_file_name, "sub_file":[]}
+                else:
+                    print("------> 4")
+                    sub_tmp = {"tree":None, "type":"file", "name":sub_file_name, "path":updata_path+sub_file_name, "sub_file":None}
+                
+                print("------> 5")
+                print(self.__path_map_file)
+                print(self.__path_map_file[updata_path])
+                print("------> 6")
+                self.__path_map_file[updata_path]["sub_file"].append(sub_tmp)
+                print("------> 7")
+        except Exception as err:
+            print(err)
+        print(self.__path_map_file[updata_path])
+        self.display_path_tree(self.__path_map_file[updata_path]["tree"], self.__path_map_file[updata_path]);
+
+    def select_tree(self):
+        """
+        选中item回调
+        """
+        for item in self.tree.selection():
+            if self.__clientsocket != None:
+                path = self.__tree_map_file[item]["path"]
+                send_data = DirList(path).encode()
+                print(len(send_data), end="  ")
+                print(send_data)
+                self.__clientsocket.send_to_ser(send_data)
+            self.display_path_tree(item, self.__tree_map_file[item]);
+            # item_text = self.tree.item(item, "values")
+            # select_path = "\\".join(item_text)
+
+    def init_view_file(self, father):
+        """
+        初始化连接
+        :param father: 父容器
+        :return: None
+        """
+        border_padx = 10  # 两个控件的间距
+        view_file_frame = tk.Frame(father, bg=father["bg"])
+        
+
+        view_file_frame.pack(side=tk.TOP, pady=5)
 
     def init_modelBar(self, menuBar):
         """
@@ -64,3 +326,9 @@ class FileManager(object):
         print("click_model_create")
         # self.__engine.OnThreadMessage(mh.M_CTRLMENU, mh.M_MODEL_FILEMANAGER,
         #                               mh.A_FILE_CREATE, self.m_model_filepath)
+
+    def __del__(self):
+        if self.__clientsocket != None:
+            self.__clientsocket.close()
+            self.__clientsocket.__del__()
+            self.__clientsocket = None

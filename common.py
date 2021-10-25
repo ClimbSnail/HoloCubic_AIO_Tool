@@ -10,6 +10,9 @@
 
 from massagehead import *
 import binascii
+import ctypes
+import inspect
+import traceback
 import re
 
 VERSION = "Ver1.4.2"
@@ -37,3 +40,29 @@ def getSendInfo(info):
     re_obj = re.compile('.{1,2}') #匹配任意字符1-2次
     t = ' '.join(re_obj.findall(str(info).upper()))
     return t
+
+
+def _async_raise(thread):
+    """
+    释放进程
+    :param thread: 进程对象
+    :param exctype:
+    :return:
+    """
+    try:
+        tid = thread.ident
+        tid = ctypes.c_long(tid)
+        exctype = SystemExit
+        """raises the exception, performs cleanup if needed"""
+        if not inspect.isclass(exctype):
+            exctype = type(exctype)
+        res = ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, ctypes.py_object(exctype))
+        if res == 0:
+            raise ValueError("invalid thread id")
+        elif res != 1:
+            # """if it returns a number greater than one, you're in trouble,
+            # and you should call it again with exc=NULL to revert the effect"""
+            ctypes.pythonapi.PyThreadState_SetAsyncExc(tid, None)
+            raise SystemError("PyThreadState_SetAsyncExc failed")
+    except Exception as err:
+        print(err)
