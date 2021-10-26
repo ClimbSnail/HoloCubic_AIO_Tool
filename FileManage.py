@@ -110,7 +110,7 @@ class Application_UI(object):
         
         # 加载目录文件
         self.load_tree("", self.path)
-        self.tree.bind("<<TreeviewSelect>>", lambda event: self.select_tree())
+        self.tree.bind("<<TreeviewOpen>>", lambda event: self.select_tree())
         text.bind("<MouseWheel>", lambda event : self.update_line())
         
         self.number_line.bind("<FocusIn>", self.focus_in_event)
