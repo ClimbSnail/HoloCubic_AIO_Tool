@@ -23,6 +23,7 @@ import tkutils as tku
 from tkinter import ttk
 from tkinter import messagebox
 
+
 class Engine(object):
     """
     引擎
@@ -54,10 +55,10 @@ class Engine(object):
         self.m_tab_manager.add(self.m_debug_tab, text="下载调试")
         self.m_debug_tab_windows = DownloadDebug(self.m_debug_tab, self)
 
-        # # 参数设置页面
-        # self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
-        # self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
-        # self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
+        # 参数设置页面
+        self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
+        self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
+        self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
 
         # 文件管理页面
         self.m_file_tab = tk.Frame(self.m_tab_manager, bg="white")
@@ -129,7 +130,6 @@ class Engine(object):
 
 
 if __name__ == '__main__':
-    
     tool_windows = tk.Tk()  # 创建窗口对象的背景色
     tool_windows.title("HoloCubic_AIO Tools" + "\t  " + VERSION)  # 窗口名
     tool_windows.geometry('1000x655+10+10')

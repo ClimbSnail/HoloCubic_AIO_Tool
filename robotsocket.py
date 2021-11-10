@@ -15,7 +15,7 @@ import ctypes
 import inspect
 
 
-def _async_raise( thread):
+def _async_raise(thread):
     """
     释放进程
     :param thread: 进程对象
@@ -39,6 +39,7 @@ def _async_raise( thread):
             raise SystemError("PyThreadState_SetAsyncExc failed")
     except Exception as err:
         print(err)
+
 
 class RobotSocket(object):
 
@@ -88,7 +89,7 @@ class RobotSocketServer(RobotSocket):
         self.__max_bind = max_bind
         self.__client_link_dict = {}
         self.__sersocket.listen(self.__max_bind)  # 开始TCP监听
-        self.__recv_buff = 1024*128
+        self.__recv_buff = 1024 * 128
 
     def start(self):
         '''
@@ -102,7 +103,7 @@ class RobotSocketServer(RobotSocket):
                 print('Connected by', addr)  # 输出客户端的IP地址
                 run_thread = threading.Thread(target=self.recvfrom_client, args=(connfd, addr))
                 run_thread.start()
-                self.__client_link_dict[addr] = {"fd":connfd, 'pthread':run_thread}
+                self.__client_link_dict[addr] = {"fd": connfd, 'pthread': run_thread}
 
         run_thread = threading.Thread(target=scanner, args=())
         run_thread.start()
@@ -163,9 +164,9 @@ class RobotSocketClient(RobotSocket):
         """
         super().__init__(ip, port, callback_func, name)
         self.__clientsocket = None
-        self.__connFlag = False # 连接状态
+        self.__connFlag = False  # 连接状态
         self.__disconntime = disconntime  # 掉线重连的时间
-        self.__recv_buff = 1024*128
+        self.__recv_buff = 1024 * 128
 
     def start(self):
         '''
@@ -193,7 +194,7 @@ class RobotSocketClient(RobotSocket):
         self.recvfrom_ser_thread = threading.Thread(target=self.recvfrom_ser, args=())
         self.recvfrom_ser_thread.start()
 
-    def recvfrom_ser(self,):
+    def recvfrom_ser(self, ):
         """
         客户端连接状态的数据处理
         :param client: 连接客户端的文件句柄
@@ -214,7 +215,7 @@ class RobotSocketClient(RobotSocket):
                     self.__clientsocket.close()
                     self.__connFlag = False
                     print(err)  # 发生异常所在的文件
-                    time.sleep(self.__disconntime*0.2)
+                    time.sleep(self.__disconntime * 0.2)
 
         except Exception as err:
             print(err)
@@ -243,7 +244,6 @@ class RobotSocketClient(RobotSocket):
         _async_raise(self.recvfrom_ser_thread)
 
 
-
 if __name__ == "__main__":
     # This is demo
 
@@ -253,6 +253,7 @@ if __name__ == "__main__":
         dat = ("Server recv %s from %s\n" % (dat, addr)).encode(encoding="utf-8")
         print(dat)
 
+
     # 初始化端口并设置接收数据的函数(当接收到数据，自动被调用)
     sersocket = RobotSocketServer("192.168.123.244", 6666, myRecvHandle, max_bind=10)
     sersocket.start()  # socket开始工作
@@ -260,7 +261,7 @@ if __name__ == "__main__":
 
     while True:
         time.sleep(1)
-		# sersocket.send_to_client(b'Hello \n')
+    # sersocket.send_to_client(b'Hello \n')
     """
     # 客户端范例
     def myRecvHandle(dat):  # 接收函数
@@ -276,6 +277,3 @@ if __name__ == "__main__":
         dat = ("%s\n" % dataIn).encode(encoding="utf-8")
         clientsocket.send_to_ser(dat)
     """
-
-
-

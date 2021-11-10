@@ -144,9 +144,9 @@ class VideoTool(object):
         cur_dir = os.getcwd()  # 当前目录
         self.trans_botton["text"] = "正在转换"
         param = self.get_output_param()
-        cmd_resize = "ffmpeg -i %s -vf scale=%s:%s %s"  # 缩放转化
-        cmd_to_rgb = 'ffmpeg -i %s -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -c:v rawvideo -pix_fmt rgb565be %s'
-        cmd_to_mjpeg = 'ffmpeg -i %s -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -q:v 9 %s'
+        cmd_resize = 'ffmpeg -i "%s" -vf scale=%s:%s "%s"'  # 缩放转化
+        cmd_to_rgb = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -c:v rawvideo -pix_fmt rgb565be "%s"'
+        cmd_to_mjpeg = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -q:v 9 "%s"'
 
         name_suffix = os.path.basename(param["src_path"]).split(".")
         suffix = name_suffix[-1]  # 后缀名
@@ -177,8 +177,8 @@ class VideoTool(object):
         middle_cmd = cmd_resize % (param["src_path"], param["width"],
                                    param["height"], video_cache)
         print(middle_cmd)
-        out_cmd = trans_cmd % (video_cache, param["fps"], param["height"], 
-                                param["width"], param["width"], final_out)
+        out_cmd = trans_cmd % (video_cache, param["fps"], param["height"],
+                               param["width"], param["width"], final_out)
         print(out_cmd)
         os.system(middle_cmd)
         os.system(out_cmd)
@@ -242,7 +242,7 @@ class VideoTool(object):
                                        bg=father['bg'])
         self.m_format_label.pack(side=tk.LEFT, padx=border_padx)
         self.m_format_select = ttk.Combobox(format_frame, width=10, state='readonly')
-        self.m_format_select["value"] = ('MJPEG', 'rgb565be')   # , 'GIF'
+        self.m_format_select["value"] = ('MJPEG', 'rgb565be')  # , 'GIF'
         # 设置默认值，即默认下拉框中的内容
         self.m_format_select.current(0)
         self.m_format_select.pack(side=tk.RIGHT, padx=border_padx)

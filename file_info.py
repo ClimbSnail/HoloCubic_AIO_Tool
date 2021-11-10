@@ -19,92 +19,93 @@ class ActionType:
     # 未知类型
     AT_FREE_STATUS = 0
 
-
     # 目录操作
     AT_DIR_CREATE = 1  # 创建
-    AT_DIR_REMOVE = 2   # 删除
-    AT_DIR_RENAME = 3   # 重命名
-    AT_DIR_LIST = 4   # 列举目录文件
+    AT_DIR_REMOVE = 2  # 删除
+    AT_DIR_RENAME = 3  # 重命名
+    AT_DIR_LIST = 4  # 列举目录文件
 
     # 文件操作
     AT_FILE_CREATE = 100  # 创建
     AT_FILE_WRITE = 101  # 文件信息流写
     AT_FILE_READ = 102  # 文件信息读
-    AT_FILE_REMOVE = 103   # 删除
-    AT_FILE_RENAME = 104   # 重命名
-    AT_FILE_GET_INFO = 105   # 查询文件大小
+    AT_FILE_REMOVE = 103  # 删除
+    AT_FILE_RENAME = 104  # 重命名
+    AT_FILE_GET_INFO = 105  # 查询文件大小
 
     def __setattr__(self, name, value):
         raise self.ConstError(f"Can't rebind const {name}")
 
+
 AT = ActionType()
 
+
 class FileSystem(MsgHead):
-    
+
     def __init__(self, action_type=AT.AT_FREE_STATUS):
-        MsgHead.__init__(self, MT.C_FILE_MANAGER, MT.CUBIC_FILE_MANAGER)   # 一定要初始化父类
+        MsgHead.__init__(self, MT.C_FILE_MANAGER, MT.CUBIC_FILE_MANAGER)  # 一定要初始化父类
         self.action_type = action_type
-        self.fmt = self.fmt+"1B"
-    
+        self.fmt = self.fmt + "1B"
+
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["action_type"]
+        return super_param + ["action_type"]
 
 
 class DirCreate(FileSystem):
-    
+
     def __init__(self, dir_path=""):
-        FileSystem.__init__(self, AT.AT_DIR_CREATE)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_CREATE)  # 一定要初始化父类
         self.dir_path = bytes(dir_path, encoding='utf8')
-        self.fmt = self.fmt+"99s"
+        self.fmt = self.fmt + "99s"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["dir_path"]
+        return super_param + ["dir_path"]
 
 
 class DirRemove(FileSystem):
-    
+
     def __init__(self, dir_path=""):
-        FileSystem.__init__(self, AT.AT_DIR_REMOVE)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_REMOVE)  # 一定要初始化父类
         self.dir_path = bytes(dir_path, encoding='utf8')
-        self.fmt = self.fmt+"99s"
+        self.fmt = self.fmt + "99s"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["dir_path"]
+        return super_param + ["dir_path"]
 
 
 class DirRename(FileSystem):
-    
+
     def __init__(self, dir_cur_name="", dir_new_name=""):
-        FileSystem.__init__(self, AT.AT_DIR_RENAME)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_RENAME)  # 一定要初始化父类
         self.dir_cur_name = bytes(dir_cur_name, encoding='utf8')
         self.dir_new_name = bytes(dir_new_name, encoding='utf8')
-        self.fmt = self.fmt+"99s99s"
+        self.fmt = self.fmt + "99s99s"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["dir_cur_name", "dir_new_name"]
+        return super_param + ["dir_cur_name", "dir_new_name"]
 
 
 class DirList(FileSystem):
-    
+
     def __init__(self, dir_path="", dir_info=""):
-        FileSystem.__init__(self, AT.AT_DIR_LIST)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_LIST)  # 一定要初始化父类
         self.dir_path = bytes(dir_path, encoding='utf8')
         self.dir_info = bytes(dir_info, encoding='utf8')
-        self.fmt = self.fmt+"99s%ds"%len(self.dir_info)
+        self.fmt = self.fmt + "99s%ds" % len(self.dir_info)
         print("self.fmt = ", end="")
         print(self.fmt)
-    
-    def decode(self, network_data, byteOrder = '!'):
+
+    def decode(self, network_data, byteOrder='!'):
         """
         消息的解码
         """
@@ -114,34 +115,34 @@ class DirList(FileSystem):
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["dir_path", "dir_info"]
+        return super_param + ["dir_path", "dir_info"]
 
 
 class FileCreate(FileSystem):
-    
+
     def __init__(self, file_name, file_size):
-        FileSystem.__init__(self, AT.AT_FILE_CREATE)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_FILE_CREATE)  # 一定要初始化父类
         self.file_name = bytes(file_name, encoding='utf8')
         self.file_size = file_size
-        self.fmt = self.fmt+"99s1H"
+        self.fmt = self.fmt + "99s1H"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["file_name", "file_size"]
+        return super_param + ["file_name", "file_size"]
 
 
 class FileWrite(FileSystem):
-    
+
     def __init__(self, data=""):
-        FileSystem.__init__(self, AT.AT_FILE_WRITE)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_FILE_WRITE)  # 一定要初始化父类
         self.data = bytes(data, encoding='utf8')
-        self.fmt = self.fmt+"%ds"%len(self.data)
+        self.fmt = self.fmt + "%ds" % len(self.data)
         print("self.fmt = ", end="")
         print(self.fmt)
-    
-    def decode(self, network_data, byteOrder = '!'):
+
+    def decode(self, network_data, byteOrder='!'):
         """
         消息的解码
         """
@@ -151,19 +152,19 @@ class FileWrite(FileSystem):
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["data"]
+        return super_param + ["data"]
 
 
 class FileRead(FileSystem):
-    
+
     def __init__(self, data=""):
-        FileSystem.__init__(self, AT.AT_FILE_READ)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_FILE_READ)  # 一定要初始化父类
         self.data = bytes(data, encoding='utf8')
-        self.fmt = self.fmt+"%ds"%len(self.data)
+        self.fmt = self.fmt + "%ds" % len(self.data)
         print("self.fmt = ", end="")
         print(self.fmt)
-    
-    def decode(self, network_data, byteOrder = '!'):
+
+    def decode(self, network_data, byteOrder='!'):
         """
         消息的解码
         """
@@ -173,49 +174,49 @@ class FileRead(FileSystem):
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["data"]
+        return super_param + ["data"]
 
 
 class FileRemove(FileSystem):
-    
+
     def __init__(self, file_name):
-        FileSystem.__init__(self, AT.AT_FILE_REMOVE)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_FILE_REMOVE)  # 一定要初始化父类
         self.file_name = bytes(file_name, encoding='utf8')
-        self.fmt = self.fmt+"99s"
+        self.fmt = self.fmt + "99s"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["file_name"]
+        return super_param + ["file_name"]
 
 
 class FileRename(FileSystem):
-    
+
     def __init__(self, file_name):
-        FileSystem.__init__(self, AT.AT_DIR_RENAME)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_RENAME)  # 一定要初始化父类
         self.dir_cur_name = bytes(file_name, encoding='utf8')
         self.dir_new_name = bytes(file_name, encoding='utf8')
-        self.fmt = self.fmt+"99s99s"
+        self.fmt = self.fmt + "99s99s"
         print("self.fmt = ", end="")
         print(self.fmt)
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["dir_cur_name", "dir_new_name"]
+        return super_param + ["dir_cur_name", "dir_new_name"]
 
 
 class FileGetInfo(FileSystem):
-    
+
     def __init__(self, file_name, file_info=""):
-        FileSystem.__init__(self, AT.AT_DIR_LIST)   # 一定要初始化父类
+        FileSystem.__init__(self, AT.AT_DIR_LIST)  # 一定要初始化父类
         self.file_name = bytes(file_name, encoding='utf8')
         self.file_info = bytes(file_info, encoding='utf8')
-        self.fmt = self.fmt+"99s%ds"%len(self.file_info)
+        self.fmt = self.fmt + "99s%ds" % len(self.file_info)
         print("self.fmt = ", end="")
         print(self.fmt)
-    
-    def decode(self, network_data, byteOrder = '!'):
+
+    def decode(self, network_data, byteOrder='!'):
         """
         消息的解码
         """
@@ -225,15 +226,7 @@ class FileGetInfo(FileSystem):
 
     def __dir__(self):
         super_param = super().__dir__()
-        return super_param+["file_name", "file_info"]
-
-
-
-
-
-
-
-
+        return super_param + ["file_name", "file_info"]
 
 ######################################################################################
 # class FileSystem_TT(Structure):

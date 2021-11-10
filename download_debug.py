@@ -179,7 +179,7 @@ class DownloadDebug(object):
         update_interval：更新时间间隔(s)
         """
         cycle_number = int(all_time / update_interval)
-        self.print_log("all_time: "+str(all_time))
+        self.print_log("all_time: " + str(all_time))
         for num in range(cycle_number - 1):
             self.progress_bar.coords(self.progress_bar_fill, (3, 3, (num / cycle_number) * 440, 14))
             self.__father.update()

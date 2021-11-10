@@ -10,7 +10,7 @@
 
 from common import *
 from widget_base import EntryWithPlaceholder
-from convertor_core import Convertor
+from convertor_core import Converter
 from convertor_core import _const
 import tkutils as tku
 
@@ -86,17 +86,17 @@ class ImagesChanger(object):
         border_padx = 15  # 两个控件的间距
 
         self.m_jpg_label = tk.Label(father, text="JPG格式输出",
-                                      # font=self.my_ft1,
-                                      bg=father['bg'])
+                                    # font=self.my_ft1,
+                                    bg=father['bg'])
         self.m_jpg_label.pack(side=tk.LEFT)
         # 勾选框的键值对象
         self.__jpg_enable_val = tk.IntVar()
         self.__jpg_enable_val.set(1)
         # 勾选框
         self.__jpg_enable = tk.Checkbutton(father, text="", bg=father["bg"],
-                                        variable=self.__jpg_enable_val,
-                                        onvalue=1, offvalue=0, height=1,
-                                        width=1, command=self.enable_jpg)
+                                           variable=self.__jpg_enable_val,
+                                           onvalue=1, offvalue=0, height=1,
+                                           width=1, command=self.enable_jpg)
         self.__jpg_enable.pack(side=tk.LEFT)
         # 色彩格式
         color_frame = tk.Frame(father, bg=father["bg"])
@@ -152,7 +152,6 @@ class ImagesChanger(object):
         self.m_height_entry.pack(side=tk.LEFT, padx=5)
         out_ratio_frame.pack(side=tk.LEFT, pady=5)
 
-
         # 设置默认值输出分辨率
         self.default_ratio()
 
@@ -194,8 +193,8 @@ class ImagesChanger(object):
 
         # 提示文字
         self.m_tip_label = tk.Label(image_path_frame, text="点击转化",
-                                          fg="green",
-                                          bg=father['bg'])
+                                    fg="green",
+                                    bg=father['bg'])
         self.m_tip_label.pack(side=tk.LEFT, padx=border_padx)
 
         image_path_frame.pack(side=tk.LEFT, pady=5)
@@ -219,7 +218,7 @@ class ImagesChanger(object):
         filepath = tk.filedialog.askopenfilenames(
             title='选择若干个图片',
             defaultextension=".espace",
-            filetypes=[('JPG', '.jpg .JPG'), ('所有文件', '.* .*')])
+            filetypes=[('Image', '.jpg .JPG .png .PNG'), ('所有文件', '.* .*')])
         if filepath == None or filepath == "":
             return None
         else:
@@ -249,24 +248,30 @@ class ImagesChanger(object):
                 return False
 
             input_path = None  # 真正参与转化的图片
+            # 图片输出后的文件后缀
+            save_suffix = os.path.splitext(img_path)[-1]  # '.png' '.jpg'
             try:
                 width = int(self.m_width_val.get().strip())
                 height = int(self.m_height_val.get().strip())
-                src_im: Image.Image = Image.open(img_path)
+                src_im: Image.Image = Image.open(img_path)  # : Image.Image
+                # # 由于PNG是RGBA四个通道 而jpg只有RGB三个通道
+                # src_im = src_im.convert('RGB')
                 new_im = None
                 if src_im.height == height and src_im.width == width:
                     new_im = src_im
                     input_path = img_path
                 else:
-                    new_filename = os.path.basename(img_path).split('.')[0] + '.jpg'
+                    new_filename = os.path.basename(img_path).split('.')[0] + save_suffix
                     print(new_filename)
                     input_path = os.path.join(ROOT_PATH, CACHE_PATH, new_filename)
                     new_im = src_im.resize((width, height))
-                    new_im.save(input_path, quality=95)
-                    # new_im.save(input_path, 'JPEG', quality=95)
+                    new_im.save(input_path, quality=95)  # , format='JPEG', quality=95
+                    # print("Look: ", input_path)
+                    # src_im.save(input_path)
+                    # print("Finish.\n")
             except Exception as err:
                 print(err)
-            
+
             print("正在转换图片 {} ...".format(os.path.basename(images_path)))
             if self.__jpg_enable_val.get() == 1:
                 shutil.copy(input_path, ROOT_PATH)
@@ -276,10 +281,12 @@ class ImagesChanger(object):
                 print("color_format = ", color_format)
                 print("output_format = ", output_format)
                 if output_format == -1:
-                    out_obj = Convertor(input_path, color_format)
+                    out_obj = Converter(input_path, True, color_format)
                     out_obj.get_c_code_file(outpath=ROOT_PATH)
                 else:
-                    out_obj = Convertor(input_path, output_format)
+                    pass
+                    print(input_path)
+                    out_obj = Converter(input_path, True, output_format)
                     out_obj.get_bin_file(outpath=ROOT_PATH)
             self.m_tip_label.configure(text="转化完成")
             print("转化完成")

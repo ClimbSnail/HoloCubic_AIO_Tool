@@ -15,17 +15,17 @@ import inspect
 import traceback
 import re
 
-VERSION = "Ver1.4.2"
+VERSION = "Ver1.4.3"
 ROOT_PATH = "OutFile"
 CACHE_PATH = "Cache"
 
-
 # 字节序定义
-byteOrders = {'Native order':'@',   # 本机（默认）
-            'Native standard':'=',  # 本机
-            'Little-endian':'<',    # 小端
-            'Big-endian':'>',       # 大端
-            'Network order':'!'}    # network(大端)
+byteOrders = {'Native order': '@',  # 本机（默认）
+              'Native standard': '=',  # 本机
+              'Little-endian': '<',  # 小端
+              'Big-endian': '>',  # 大端
+              'Network order': '!'}  # network(大端)
+
 
 # 关于struct格式串字节大小 https://blog.csdn.net/qq_30638831/article/details/80421019
 
@@ -37,7 +37,7 @@ def getSendInfo(info):
     """
     info = binascii.hexlify(info)
     print(info)
-    re_obj = re.compile('.{1,2}') #匹配任意字符1-2次
+    re_obj = re.compile('.{1,2}')  # 匹配任意字符1-2次
     t = ' '.join(re_obj.findall(str(info).upper()))
     return t
 

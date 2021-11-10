@@ -1,10 +1,22 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2021 W-Mai
+# 
+# This software is released under the MIT License.
+# https://opensource.org/licenses/MIT
+#
+# lvgl_image_converter/lvgl_Converter.py
+# Created by W-Mai on 2021/2/17.
+# repo: https://github.com/W-Mai/lvgl_image_converter
+#
+##############################################################
+
 
 from typing import *
 import math
 from PIL import Image
 import struct
 import os.path
+
 
 def getColorFromPalette(palette, index):
     return [palette[3 * index + i] for i in range(3)]
@@ -35,7 +47,6 @@ class _const:
     CF_TRUE_COLOR_565 = 1
     CF_TRUE_COLOR_565_SWAP = 2
     CF_TRUE_COLOR_888 = 3
-    
     CF_ALPHA_1_BIT = 4
     CF_ALPHA_2_BIT = 5
     CF_ALPHA_4_BIT = 6
@@ -56,10 +67,10 @@ class _const:
         raise self.ConstError(f"Can't rebind const {name}")
 
 
-class Convertor(object):
+class Converter(object):
     FLAG = _const()
 
-    def __init__(self, path, config=FLAG.CF_INDEXED_4_BIT, dith=True):
+    def __init__(self, path, dith: bool = True, cf=FLAG.CF_INDEXED_4_BIT, cf_palette_bgr_en=0):
 
         self.dith = None  # Dithering enable/disable
         self.w = None  # Image width
@@ -86,13 +97,14 @@ class Convertor(object):
         self.g_err = None
         self.b_nerr = None
 
-        self.cf = config
+        self.cf = cf
         self.dith = dith
         self.path = path
+        self.cf_palette_bgr_en = cf_palette_bgr_en
 
-        if self.cf == "raw" or self.cf == "raw_alpha" or self.cf == "raw_chroma":
+        if cf == "raw" or cf == "raw_alpha" or cf == "raw_chroma":
             return
-        self.img: Image.Image = Image.open(path).convert("RGBA")
+        self.img: Image.Image = Image.open(path)
         self.w, self.h = self.img.size
 
         if self.dith:
@@ -107,7 +119,9 @@ class Convertor(object):
         self.convert()
 
     # noinspection PyAttributeOutsideInit
-    def convert(self, alpha: int = 0) -> NoReturn:
+    def convert(self, cf=None, alpha: int = 0) -> NoReturn:
+        if cf is not None:
+            self.cf = cf
         self.d_out = []
         self.alpha = alpha
 
@@ -125,6 +139,7 @@ class Convertor(object):
 
         if palette_size:
             img_tmp = Image.new("RGB", (self.w, self.h))
+            # img_tmp.paste(img_tmp, self.img.size)
             img_tmp.paste(img_tmp, self.img)
             self.img = self.img.convert(mode="P", colors=palette_size)
             real_palette_size = len(self.img.getcolors())  # The real number of colors in the image's palette
@@ -133,6 +148,8 @@ class Convertor(object):
             for i in range(palette_size):
                 if i < real_palette_size:
                     c = getColorFromPalette(real_palette, i)
+                    if (self.cf_palette_bgr_en == 1):
+                        c = [c[2 - i] for i in range(3)]
                     self.d_out.extend(c)
                     self.d_out.append(0xFF)
                 else:
@@ -241,6 +258,12 @@ class Convertor(object):
             self.FLAG.CF_ALPHA_4_BIT: 2,
             self.FLAG.CF_INDEXED_4_BIT: 2
         }.get(self.cf, 1)
+        # md heqi
+        # x_end = x_end * ({
+        #                      self.FLAG.CF_TRUE_COLOR_565: 2,
+        #                      self.FLAG.CF_TRUE_COLOR_565_SWAP: 2
+        #                  }.get(self.cf, 1)
+        #                  + 1 if self.alpha else 0)
 
         if self.cf in (self.FLAG.CF_RAW, self.FLAG.CF_RAW_ALPHA, self.FLAG.CF_RAW_CHROMA):
             tmpStr = '\n  ' + ', \n  '.join(
@@ -261,7 +284,11 @@ class Convertor(object):
         return c_array
 
     def _get_c_header(self) -> AnyStr:
-        c_header = r'''#include "lvgl.h"
+        c_header = r'''#if defined(LV_LVGL_H_INCLUDE_SIMPLE)
+#include "lvgl.h"
+#else
+#include "../lvgl/lvgl.h"
+#endif
 #ifndef LV_ATTRIBUTE_MEM_ALIGN
 #define LV_ATTRIBUTE_MEM_ALIGN
 #endif
@@ -301,24 +328,21 @@ const lv_img_dsc_t {self.out_name} = {{
                 self.FLAG.CF_RAW: f"{len(self.d_out)},\n  .header.cf = LV_IMG_CF_RAW,",
                 self.FLAG.CF_RAW_ALPHA: f"{len(self.d_out)},\n  .header.cf = LV_IMG_CF_RAW_ALPHA,",
                 self.FLAG.CF_RAW_CHROMA: f"{len(self.d_out)},\n  .header.cf = LV_IMG_CF_RAW_CHROMA_KEYED,"
-            }.get(cf, "") + f"\n  .data = {self.out_name}_map,\n}}\n"
+            }.get(cf, "") + f"\n  .data = {self.out_name}_map,\n}};\n"
         return c_footer
 
     def get_c_code_file(self, cf=-1, content="", outpath='') -> AnyStr:
         if len(content) < 1: content = self.format_to_c_array()
         if cf < 0: cf = self.cf
         out = self._get_c_header() + content + self._get_c_footer(cf)
-
         with open(os.path.join(outpath, self.out_name + ".h"), "w", encoding='utf-8') as f:
             f.write(str(out))
             f.close()
-
         return out
 
     def get_bin_file(self, cf=-1, content=None, outpath='') -> bytes:
         if not content: content = self.d_out
         if cf < 0: cf = self.cf
-
         lv_cf = {  # Color format in LittlevGL
             self.FLAG.CF_TRUE_COLOR: 4,
             self.FLAG.CF_TRUE_COLOR_ALPHA: 5,

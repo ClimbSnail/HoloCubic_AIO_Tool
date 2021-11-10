@@ -47,5 +47,5 @@ https://lvgl.io/assets/images/logo_lvgl.png
 ## 致谢
 * 固件下载工具 https://github.com/espressif/esptool
 * 视频转码工具 https://github.com/FFmpeg/FFmpeg
-* LVGL离线转换工具 https://github.com/zhangjingxun12/Lvgl_image_convert_tool
+* LVGL离线转换工具 https://github.com/W-Mai/lvgl_image_converter
 
