@@ -19,6 +19,7 @@ from tkinter import ttk
 from tkinter import filedialog
 from tool_esptoolpy import esptool
 import threading
+import common
 
 STRGLO = ""  # 读取的数据
 BOOL = True  # 读取标志位
@@ -243,7 +244,7 @@ class DownloadDebug(object):
         if self.download_thread != None:
             try:
                 # 杀线程
-                _async_raise(self.download_thread)
+                common._async_raise(self.download_thread)
                 self.download_thread = None
             except Exception as err:
                 print(err)
@@ -257,7 +258,7 @@ class DownloadDebug(object):
         if self.progress_bar_thread != None:
             try:
                 # 杀线程
-                _async_raise(self.progress_bar_thread)
+                common._async_raise(self.progress_bar_thread)
                 self.progress_bar_thread = None
             except Exception as err:
                 print(err)
@@ -327,7 +328,7 @@ class DownloadDebug(object):
         if self.progress_bar_thread != None:
             try:
                 # 杀线程
-                _async_raise(self.progress_bar_thread)
+                common._async_raise(self.progress_bar_thread)
                 self.progress_bar_thread = None
             except Exception as err:
                 print(err)
@@ -567,7 +568,7 @@ class DownloadDebug(object):
                 del self.ser
                 self.ser = None
                 # 杀线程
-                _async_raise(self.receive_thread)
+                common._async_raise(self.receive_thread)
                 self.receive_thread = None
                 self.print_log("Receive_thread stop")
                 STRGLO = ""  # 读取的数据
@@ -639,10 +640,10 @@ class DownloadDebug(object):
             self.ser = None
         if self.receive_thread != None:
             # 杀线程
-            _async_raise(self.receive_thread)
+            common._async_raise(self.receive_thread)
         if self.download_thread != None:
             # 杀线程
-            _async_raise(self.download_thread)
+            common._async_raise(self.download_thread)
         if self.progress_bar_thread != None:
             # 杀线程
-            _async_raise(self.progress_bar_thread)
+            common._async_raise(self.progress_bar_thread)

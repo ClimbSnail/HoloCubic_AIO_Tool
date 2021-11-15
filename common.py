@@ -15,7 +15,7 @@ import inspect
 import traceback
 import re
 
-VERSION = "Ver1.4.3"
+VERSION = "Ver1.4.4"
 ROOT_PATH = "OutFile"
 CACHE_PATH = "Cache"
 
@@ -42,7 +42,7 @@ def getSendInfo(info):
     return t
 
 
-def _async_raise(thread):
+def _async_raise(thread_obj):
     """
     释放进程
     :param thread: 进程对象
@@ -50,7 +50,7 @@ def _async_raise(thread):
     :return:
     """
     try:
-        tid = thread.ident
+        tid = thread_obj.ident
         tid = ctypes.c_long(tid)
         exctype = SystemExit
         """raises the exception, performs cleanup if needed"""

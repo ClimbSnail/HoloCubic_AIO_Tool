@@ -254,8 +254,11 @@ class ImagesChanger(object):
                 width = int(self.m_width_val.get().strip())
                 height = int(self.m_height_val.get().strip())
                 src_im: Image.Image = Image.open(img_path)  # : Image.Image
-                # # 由于PNG是RGBA四个通道 而jpg只有RGB三个通道
-                # src_im = src_im.convert('RGB')
+                if self.__jpg_enable_val.get() == 1:
+                    # 如果转化成jpg的话
+                    # 由于PNG是RGBA四个通道 而jpg只有RGB三个通道
+                    src_im = src_im.convert('RGB')
+                    save_suffix = '.jpg'  # '.png' '.jpg'
                 new_im = None
                 if src_im.height == height and src_im.width == width:
                     new_im = src_im

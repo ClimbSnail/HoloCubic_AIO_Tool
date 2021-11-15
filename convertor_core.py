@@ -116,7 +116,8 @@ class Converter(object):
         self.g_nerr = 0
         self.b_nerr = 0
 
-        self.convert()
+        alpha = 1 if self.cf == self.FLAG.CF_TRUE_COLOR_ALPHA else 0
+        self.convert(self.cf, alpha)
 
     # noinspection PyAttributeOutsideInit
     def convert(self, cf=None, alpha: int = 0) -> NoReturn:
@@ -139,8 +140,8 @@ class Converter(object):
 
         if palette_size:
             img_tmp = Image.new("RGB", (self.w, self.h))
-            # img_tmp.paste(img_tmp, self.img.size)
-            img_tmp.paste(img_tmp, self.img)
+            img_tmp.paste(img_tmp, self.img.size)
+            # img_tmp.paste(img_tmp, self.img)
             self.img = self.img.convert(mode="P", colors=palette_size)
             real_palette_size = len(self.img.getcolors())  # The real number of colors in the image's palette
             real_palette = self.img.getpalette()
@@ -343,6 +344,7 @@ const lv_img_dsc_t {self.out_name} = {{
     def get_bin_file(self, cf=-1, content=None, outpath='') -> bytes:
         if not content: content = self.d_out
         if cf < 0: cf = self.cf
+
         lv_cf = {  # Color format in LittlevGL
             self.FLAG.CF_TRUE_COLOR: 4,
             self.FLAG.CF_TRUE_COLOR_ALPHA: 5,
