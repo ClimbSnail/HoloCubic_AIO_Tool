@@ -20,10 +20,12 @@ from tkinter import filedialog
 from tool_esptoolpy import esptool
 import threading
 import common
+import requests
+import re
 
 STRGLO = ""  # 读取的数据
 BOOL = True  # 读取标志位
-
+VERSION_INFO_URL = "https://gitee.com/ClimbSnailQ/HoloCubic_AIO/blob/main/HoloCubic_Firmware/src/common.h"
 
 class DownloadDebug(object):
     """
@@ -44,6 +46,7 @@ class DownloadDebug(object):
         self.receive_thread = None  # 串口接收线程对象
         self.download_thread = None  # 下载线程对象
         self.progress_bar_thread = None  # 进度条线程对象
+        self.clean_flash_thread = None # 清空flash动作线程对象
 
         # 连接器相关控件
         # 使用LabelFrame控件 框出连接相关的控件
@@ -93,6 +96,20 @@ class DownloadDebug(object):
         self.connor_info_frame.place(x=self.__father.winfo_width() + 10, y=240)
         self.connor_info_frame.update()
         self.init_serial_receive(self.connor_info_frame)
+
+        self.display_version();
+        self.get_version_thread = threading.Thread(target=self.display_version)
+        self.get_version_thread.start()
+
+    def display_version(self):
+        self.m_version_info["state"] = tk.DISABLED
+        try:
+            response = requests.get(VERSION_INFO_URL, timeout=3)
+            version_info = re.findall(r'AIO_VERSION \"\d{1,2}\.\d{1,2}\.\d{1,2}\"', response.text)
+            self.m_version_var.set("v" + version_info[0].split("\"")[1])
+        except Exception as err:
+            print(err)
+            self.m_version_var.set("未知")
 
     def init_firmware(self, father):
         """
@@ -148,13 +165,34 @@ class DownloadDebug(object):
 
             self.__firmware_choose_botton[pos].pack(side=tk.RIGHT, fill=tk.X, padx=5)
             firmware_frame[pos].pack(side=tk.TOP, pady=border_pady)
+        
+        # version_info_frame = tk.Frame(father, bg=father["bg"])
+        # 版本信息
+        # version_text = tk.Label(version_info_frame, text="AIO最新版本", bg=version_info_frame['bg'])
+        # version_text.pack(side=tk.LEFT)
+        # # 创建宽输入框
+        # self.m_version_var = tk.StringVar()
+        # self.m_version_info = EntryWithPlaceholder(version_info_frame, width=6, highlightcolor="LightGrey",
+        #                                           placeholder="未知", placeholder_color="grey",
+        #                                           textvariable=self.m_version_var)
+        # self.m_version_info.pack(side=tk.LEFT, padx=5)
+        # version_info_frame.pack(side=tk.TOP, pady=5)
 
         # botton组件
         botton_group_frame = tk.Frame(father, bg=father["bg"])
+
+        version_text = tk.Label(botton_group_frame, text="AIO最新版本", bg=botton_group_frame['bg'])
+        version_text.pack(side=tk.LEFT)
+        # 创建宽输入框
+        self.m_version_var = tk.StringVar()
+        self.m_version_info = EntryWithPlaceholder(botton_group_frame, width=6, highlightcolor="LightGrey",
+                                                  placeholder="未知", placeholder_color="grey",
+                                                  textvariable=self.m_version_var)
+        self.m_version_info.pack(side=tk.LEFT, padx=5)
+
         # 清空按钮
         self.m_clean_flash_botton = tk.Button(botton_group_frame, text="清空芯片", fg='black',
                                               command=self.clean_flash, width=8, height=1)
-
         self.m_clean_flash_botton.pack(side=tk.LEFT, fill=tk.X, padx=border_padx)
         # 下载按钮
         self.m_download_botton = tk.Button(botton_group_frame, text="刷写固件", fg='black',
@@ -209,24 +247,39 @@ class DownloadDebug(object):
         """
         擦除闪存
         """
-        self.m_clean_flash_botton["text"] = "清空中"
-        self.m_connect_button["state"] = tk.DISABLED
-        self.m_reboot_button["state"] = tk.DISABLED
-        self.m_clean_flash_botton["state"] = tk.DISABLED
-        self.m_download_botton["state"] = tk.DISABLED
-        self.print_log("清空芯片中.....")
-        self.__father.update()
+        def clean_func():
+            self.m_clean_flash_botton["text"] = "清空中"
+            self.m_connect_button["state"] = tk.DISABLED
+            self.m_reboot_button["state"] = tk.DISABLED
+            # self.m_clean_flash_botton["state"] = tk.DISABLED
+            self.m_download_botton["state"] = tk.DISABLED
+            self.print_log("清空芯片中.....")
+            self.__father.update()
 
-        cmd = ['erase_flash']
-        esptool.main(cmd)
+            cmd = ['erase_flash']
+            esptool.main(cmd)
+            self.print_log("清空芯片成功！")
+            # 更新按钮状态
+            self.m_clean_flash_botton["text"] = "清空芯片"
+            self.m_connect_button["state"] = tk.NORMAL
+            self.m_reboot_button["state"] = tk.NORMAL
+            # self.m_clean_flash_botton["state"] = tk.NORMAL
+            self.m_download_botton["state"] = tk.NORMAL
+            self.__father.update()
 
-        self.m_clean_flash_botton["text"] = "清空芯片"
-        self.m_connect_button["state"] = tk.NORMAL
-        self.m_reboot_button["state"] = tk.NORMAL
-        self.m_clean_flash_botton["state"] = tk.NORMAL
-        self.m_download_botton["state"] = tk.NORMAL
-        self.__father.update()
-        self.print_log("清空芯片成功！")
+        if self.m_clean_flash_botton["text"] == "清空芯片":
+            self.clean_flash_thread = threading.Thread(target=clean_func,)
+            self.clean_flash_thread.start()
+        else:
+            # 杀线程
+            common._async_raise(self.clean_flash_thread)
+            self.clean_flash_thread = None
+            self.m_clean_flash_botton["text"] = "清空芯片"
+            self.m_connect_button["state"] = tk.NORMAL
+            self.m_reboot_button["state"] = tk.NORMAL
+            # self.m_clean_flash_botton["state"] = tk.NORMAL
+            self.m_download_botton["state"] = tk.NORMAL
+            self.__father.update()
 
     def down_and_canle(self):
         """
