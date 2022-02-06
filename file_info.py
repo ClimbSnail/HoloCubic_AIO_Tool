@@ -13,37 +13,10 @@ from ctypes import *
 import struct
 
 
-class ActionType:
-    class ConstError(TypeError): pass
-
-    # 未知类型
-    AT_FREE_STATUS = 0
-
-    # 目录操作
-    AT_DIR_CREATE = 1  # 创建
-    AT_DIR_REMOVE = 2  # 删除
-    AT_DIR_RENAME = 3  # 重命名
-    AT_DIR_LIST = 4  # 列举目录文件
-
-    # 文件操作
-    AT_FILE_CREATE = 100  # 创建
-    AT_FILE_WRITE = 101  # 文件信息流写
-    AT_FILE_READ = 102  # 文件信息读
-    AT_FILE_REMOVE = 103  # 删除
-    AT_FILE_RENAME = 104  # 重命名
-    AT_FILE_GET_INFO = 105  # 查询文件大小
-
-    def __setattr__(self, name, value):
-        raise self.ConstError(f"Can't rebind const {name}")
-
-
-AT = ActionType()
-
-
 class FileSystem(MsgHead):
 
     def __init__(self, action_type=AT.AT_FREE_STATUS):
-        MsgHead.__init__(self, MT.C_FILE_MANAGER, MT.CUBIC_FILE_MANAGER)  # 一定要初始化父类
+        MsgHead.__init__(self, MT.MODULE_TYPE_C_FILE_MANAGER, MT.MODULE_TYPE_CUBIC_FILE_MANAGER)  # 一定要初始化父类
         self.action_type = action_type
         self.fmt = self.fmt + "1B"
 

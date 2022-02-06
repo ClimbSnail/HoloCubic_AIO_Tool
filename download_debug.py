@@ -12,12 +12,13 @@ from widget_base import EntryWithPlaceholder
 
 import os
 import time
-import serial
+import serial   # pip install pyserial
 import tkinter as tk
 import tkutils as tku
 from tkinter import ttk
 from tkinter import filedialog
 from tool_esptoolpy import esptool
+import massagehead as mh
 import threading
 import common
 import requests
@@ -55,8 +56,8 @@ class DownloadDebug(object):
         # self.connor_grid_frame.place(anchor="ne", relx=1.0, rely=0.0)
         # self.connor_grid_frame.grid(row=0, column=1)
         self.connor_grid_frame.place(x=self.__father.winfo_width() + 10, y=10)
-        self.connor_grid_frame.update()
         self.create_com(self.connor_grid_frame)
+        self.connor_grid_frame.update()
 
         # 连接器相关控件
         cur_dir = os.getcwd()
@@ -100,6 +101,15 @@ class DownloadDebug(object):
         self.display_version();
         self.get_version_thread = threading.Thread(target=self.display_version)
         self.get_version_thread.start()
+
+    def api(self, action, param=None):
+        """
+        下载模块对外的api接口
+        """
+        if action == mh.A_CLOSE_UART:  # 关闭串口
+            self.canle_download_firmware()
+            self.m_connect_button["text"] == "关闭串口"
+            self.com_connect()
 
     def display_version(self):
         self.m_version_info["state"] = tk.DISABLED
@@ -676,9 +686,18 @@ class DownloadDebug(object):
         down_flag, param = self.get_download_param()
         self.print_log("已发送重启指令！")
         self.__father.update()
-        cmd = ['--port', param["port"], '--baud', param["baud"],
-               '--after', 'hard_reset', "read_mac"]
-        esptool.main(cmd)
+        # cmd = ['--port', param["port"], '--baud', param["baud"],
+        #        '--after', 'hard_reset', "read_mac"]
+        # esptool.main(cmd)
+        
+        port = serial.Serial(param["port"], param["baud"], timeout=10)
+        port.setRTS(True)  # EN->LOW
+        port.setDTR(port.dtr)
+        time.sleep(0.05)
+        port.setRTS(False)
+        port.setDTR(port.dtr)
+        port.close()  # 关闭串口
+        del port
         self.m_connect_button["state"] = tk.NORMAL
         self.m_reboot_button["state"] = tk.NORMAL
         self.m_clean_flash_botton["state"] = tk.NORMAL

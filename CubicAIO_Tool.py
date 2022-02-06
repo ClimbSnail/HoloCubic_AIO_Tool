@@ -50,15 +50,15 @@ class Engine(object):
         # tk.tab   tab页面的管理器
         self.m_tab_manager = ttk.Notebook(self.root)
 
-        # 下载调试页面
-        self.m_debug_tab = tk.Frame(self.m_tab_manager, bg="white")
-        self.m_tab_manager.add(self.m_debug_tab, text="下载调试")
-        self.m_debug_tab_windows = DownloadDebug(self.m_debug_tab, self)
-
         # 参数设置页面
         self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
         self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
         self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
+
+        # 下载调试页面
+        self.m_debug_tab = tk.Frame(self.m_tab_manager, bg="white")
+        self.m_tab_manager.add(self.m_debug_tab, text="下载调试")
+        self.m_debug_tab_windows = DownloadDebug(self.m_debug_tab, self)
 
         # 文件管理页面
         self.m_file_tab = tk.Frame(self.m_tab_manager, bg="white")
@@ -85,6 +85,24 @@ class Engine(object):
         self.m_help_tab_windows = Helper(self.m_help_tab, self)
 
         self.m_tab_manager.pack(expand=True, fill=tk.BOTH)
+    
+    def OnThreadMessage(self, fromwho, towho, action, param = None):
+        """
+        引擎的调度函数 控件利用此函数可间接操作或者获取其他控件的对应资源
+        :param fromwho:表示调用者
+        :param towho:表示请求操作的控件
+        :param action:表示请求操作的操作类型
+        :param param:操作请求所携带的参数(根据具体请求来指定参数类型)
+        """
+        print(fromwho, towho, action, param)
+        #info = fromwho+" "+towho+" "+action+" "+param
+        #self.OnThreadMessage(mh.M_ENGINE, mh.M_SYSINFO, mh.A_INFO_PRINT, info+"\n")
+
+        if towho == mh.M_DOWNLOAD_DEBUG: # 下载模块操作请求
+            self.m_debug_tab_windows.api(action, param)    # 处理消息
+
+        elif towho == mh.M_SETTING: # 设置模块操作请求
+            self.m_modelManager.api(action, param)
 
     def on_closing(self):
         """
@@ -102,6 +120,10 @@ class Engine(object):
         if self.m_debug_tab_windows != None:
             del self.m_debug_tab_windows
             self.m_debug_tab_windows = None
+
+        if self.m_setting_tab_windows != None:
+            del self.m_setting_tab_windows
+            self.m_setting_tab_windows = None
 
     def OnThreadMessage(self, fromwho, towho, action, param=None):
         """
