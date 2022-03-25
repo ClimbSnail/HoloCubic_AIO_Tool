@@ -46,7 +46,7 @@ class Helper(object):
         也欢迎加入到AIO固件的开发队列。
 
         观看演示链接：
-            https://www.bilibili.com/video/BV1jh411a7pV?p=1
+            https://www.bilibili.com/video/BV1wS4y1R7YF?p=1
 
         了解Holocubic AIO固件
             请访问 https://github.com/ClimbSnail/HoloCubic_AIO （最新版本）

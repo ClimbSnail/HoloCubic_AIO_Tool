@@ -50,15 +50,15 @@ class Engine(object):
         # tk.tab   tab页面的管理器
         self.m_tab_manager = ttk.Notebook(self.root)
 
-        # 参数设置页面
-        self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
-        self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
-        self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
-
         # 下载调试页面
         self.m_debug_tab = tk.Frame(self.m_tab_manager, bg="white")
         self.m_tab_manager.add(self.m_debug_tab, text="下载调试")
         self.m_debug_tab_windows = DownloadDebug(self.m_debug_tab, self)
+
+        # 参数设置页面
+        self.m_setting_tab = tk.Frame(self.m_tab_manager, bg="white")
+        self.m_tab_manager.add(self.m_setting_tab, text="参数设置")
+        self.m_setting_tab_windows = Setting(self.m_setting_tab, self)
 
         # 文件管理页面
         self.m_file_tab = tk.Frame(self.m_tab_manager, bg="white")

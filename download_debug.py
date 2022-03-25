@@ -63,7 +63,7 @@ class DownloadDebug(object):
         cur_dir = os.getcwd()
         # 固件下载框默认值
         self.__pre_down_param_list = [
-            {"bin_addr": "0x1000", "bin_path": os.path.join(cur_dir, 'bootloader_dio_40m.bin'),
+            {"bin_addr": "0x1000", "bin_path": os.path.join(cur_dir, 'bootloader_qio_80m.bin'),
              "placeholder": "选择Bootloader的bin文件"},
 
             {"bin_addr": "0x8000", "bin_path": os.path.join(cur_dir, 'partitions.bin'),
@@ -171,10 +171,16 @@ class DownloadDebug(object):
             self.__firmware_path_entry[pos].refresh()
             # 选择按钮
             self.__firmware_choose_botton[pos] = tk.Button(firmware_frame[pos], text="选择", fg='black',
-                                                           command=lambda: self.choose_file(pos), width=6, height=1)
+                                                           command=lambda: self.choose_file(pos.copy()), width=6, height=1)
 
             self.__firmware_choose_botton[pos].pack(side=tk.RIGHT, fill=tk.X, padx=5)
             firmware_frame[pos].pack(side=tk.TOP, pady=border_pady)
+
+        # 由于"选择"按钮中用的是循环，参数pos不生效
+        self.__firmware_choose_botton[0].config(command=lambda: self.choose_file(0))
+        self.__firmware_choose_botton[1].config(command=lambda: self.choose_file(1))
+        self.__firmware_choose_botton[2].config(command=lambda: self.choose_file(2))
+        self.__firmware_choose_botton[3].config(command=lambda: self.choose_file(3))
         
         # version_info_frame = tk.Frame(father, bg=father["bg"])
         # 版本信息
@@ -345,9 +351,13 @@ class DownloadDebug(object):
             self.canle_download_firmware()
             return None
 
+        # cmd = ['--port', param["port"],
+        #        '--baud', param["baud"],
+        #        'write_flash', '-fm', 'dio', '-fs', '4MB'
+        #        ]
         cmd = ['--port', param["port"],
                '--baud', param["baud"],
-               'write_flash', '-fm', 'dio', '-fs', '4MB'
+               'write_flash', '-fs', '4MB'
                ]
 
         all_time = 0  # 粗略认为连接并复位芯片需要0.5s钟

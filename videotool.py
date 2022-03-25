@@ -116,7 +116,12 @@ class VideoTool(object):
         filepath = filedialog.askopenfilename(
             title='选择一个视频文件',
             defaultextension=".espace",
-            filetypes=[('mp4', '.mp4 .MP4'), ('avi', '.avi .AVI'), ('mov', '.mov .MOV')])
+            # filetypes=[('mp4', '.mp4 .MP4'), ('avi', '.avi .AVI'), 
+            #     ('mov', '.mov .MOV'), ('gif', '.gif .GIF'), ('所有文件', '.* .*')]
+            # )
+            filetypes=[('常用格式', '.mp4 .MP4 .avi .AVI .mov .MOV .gif .GIF'),
+                ('所有文件', '.* .*')]
+            )
         if filepath == None or filepath == "":
             return None
         else:
@@ -145,8 +150,10 @@ class VideoTool(object):
         self.trans_botton["text"] = "正在转换"
         param = self.get_output_param()
         cmd_resize = 'ffmpeg -i "%s" -vf scale=%s:%s "%s"'  # 缩放转化
-        cmd_to_rgb = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -c:v rawvideo -pix_fmt rgb565be "%s"'
-        cmd_to_mjpeg = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -q:v 9 "%s"'
+        # cmd_to_rgb 的倒数第二个参数其实没什么作用，因为rgb本身就是实际的像素点
+        # （这个是为了跟cmd_to_mjpeg统一格式才加的参数）
+        cmd_to_rgb = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -c:v rawvideo -pix_fmt rgb565be -q:v %s "%s"'
+        cmd_to_mjpeg = 'ffmpeg -i "%s" -vf "fps=%s,scale=-1:%s:flags=lanczos,crop=%s:in_h:(in_w-%s)/2:0" -q:v %s "%s"'
 
         name_suffix = os.path.basename(param["src_path"]).split(".")
         suffix = name_suffix[-1]  # 后缀名
@@ -178,7 +185,7 @@ class VideoTool(object):
                                    param["height"], video_cache)
         print(middle_cmd)
         out_cmd = trans_cmd % (video_cache, param["fps"], param["height"],
-                               param["width"], param["width"], final_out)
+                               param["width"], param["width"], param["quality"], final_out)
         print(out_cmd)
         os.system(middle_cmd)
         os.system(out_cmd)
@@ -232,7 +239,17 @@ class VideoTool(object):
         self.m_fps_entry.insert(tk.END, '20')
         # self.m_pre_val_text = "1500"    # 保存修改前m_val_text输入框中的内容，供错误输入时使用
         # self.m_fps_entry.bind("<Return>", self.change_val)  # 绑定enter键的触发
-        self.m_fps_entry.pack(side=tk.RIGHT, padx=border_padx)
+        self.m_fps_entry.pack(side=tk.LEFT, padx=border_padx)
+        # 质量
+        self.m_quality_label = tk.Label(fps_frame, text="质量",
+                                    # font=self.my_ft1,
+                                    bg=father['bg'])
+        self.m_quality_label.pack(side=tk.LEFT, padx=border_padx)
+        self.m_quality_select = ttk.Combobox(fps_frame, width=5, state='readonly')
+        self.m_quality_select["value"] = ('1', '2', '3', '4', '5', '6', '7', '8', '9')  # , 'GIF'
+        # 设置默认值，即默认下拉框中的内容
+        self.m_quality_select.current(4)
+        self.m_quality_select.pack(side=tk.LEFT, padx=border_padx)
         fps_frame.pack(side=tk.TOP, pady=5)
 
         # 格式
@@ -259,11 +276,13 @@ class VideoTool(object):
             self.m_width_entry["state"] = tk.DISABLED
             self.m_height_entry["state"] = tk.DISABLED
             self.m_fps_entry["state"] = tk.DISABLED
+            self.m_quality_select["state"] = tk.DISABLED
             self.m_format_select["state"] = tk.DISABLED
         elif self.m_radio_val.get() == 1:
             self.m_width_entry["state"] = tk.NORMAL
             self.m_height_entry["state"] = tk.NORMAL
             self.m_fps_entry["state"] = tk.NORMAL
+            self.m_quality_select["state"] = tk.NORMAL
             self.m_format_select["state"] = tk.NORMAL
 
     def get_output_param(self):
@@ -276,5 +295,6 @@ class VideoTool(object):
             "width": self.m_width_entry.get().strip(),
             "height": self.m_height_entry.get().strip(),
             "fps": self.m_fps_entry.get().strip(),
+            "quality": self.m_quality_select.get().strip(),
             "format": self.m_format_select.get().strip()
         }
