@@ -8,18 +8,18 @@
 #
 ################################################################################
 
-from common import *
-import massagehead as mh
-from videotool import VideoTool
-from download_debug import DownloadDebug
-from setting import Setting
-from help import Helper
-from imagetrans import ImagesChanger
-from filemanager import FileManager
+from util.common import *
+import util.massagehead as mh
+from page.videotool import VideoTool
+from page.download_debug import DownloadDebug
+from page.setting import Setting
+from page.help import Helper
+from page.images_converter import ImagesConverter 
+from page.filemanager import FileManager
 
 import os
 import tkinter as tk
-import tkutils as tku
+import util.tkutils as tku
 from tkinter import ttk
 from tkinter import messagebox
 
@@ -36,7 +36,7 @@ class Engine(object):
         """
         self.root = root
         self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
-        self.root.iconbitmap("./holo_64.ico")  # 窗体图标
+        self.root.iconbitmap("./holo_256.ico")  # 窗体图标
         # 文件转化的创建输出目录
         try:
             dir_path = os.path.join("OutFile", "Cache")
@@ -68,7 +68,7 @@ class Engine(object):
         # 图片转换页面
         self.m_image_tab = tk.Frame(self.m_tab_manager, bg="white")
         self.m_tab_manager.add(self.m_image_tab, text="图片转换")
-        self.m_image_tab_windows = ImagesChanger(self.m_image_tab, self)
+        self.m_image_tab_windows = ImagesConverter (self.m_image_tab, self)
 
         # 视频转码页面
         self.m_video_tab = tk.Frame(self.m_tab_manager, bg="white")

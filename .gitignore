@@ -1,2 +1,8 @@
 ffmpeg.exe
-__pycache__
+*__pycache__*
+OutFile
+build/
+dist/
+.idea/
+__pycache__/
+CubicAIO_Tool.spec
