@@ -1,6 +1,9 @@
 ## 项目为AIO固件配套上位机
 Holocubic_AIO开源地址 https://github.com/ClimbSnail/HoloCubic_AIO
 
+## 迁移通知
+目前本项目最新源码已迁移至 https://github.com/ClimbSnail/HoloCubic_AIO/tree/main/AIO_Tool
+
 [^_^]:
 	![AIO_TOOL](Image/holocubic_aio_tool.png)
 
